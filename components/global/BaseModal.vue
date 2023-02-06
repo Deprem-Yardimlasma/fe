@@ -6,17 +6,14 @@ const props = defineProps({
     }
 })
 
-const isShow = ref(props.modelValue)
-
-watchEffect(() => {
-    isShow.value = props.modelValue
-})
-
-
 const emit = defineEmits()
-watch(isShow, () => {
-    emit('update:modelValue', isShow.value)
-})
+
+const isShow = computed({
+    get: () => props.modelValue,
+    set: (value) => {
+        emit('update:modelValue', value)
+    }
+});
 </script>
 <template>
     <div>
@@ -28,7 +25,7 @@ watch(isShow, () => {
         >
         <div class="modal">
             <div class="modal-box">
-                <label for="my-modal-2" class="btn btn-sm absolute right-4 top-4">✕</label>
+                <label class="btn btn-sm absolute right-4 top-4" @click="isShow = false">✕</label>
                 <div class="form-control flex items-center">
                     <h2>
                         <slot name="header" />
