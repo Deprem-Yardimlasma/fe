@@ -24,7 +24,7 @@ const props = defineProps({
                   <td>{{ data.address.city }}</td>
                   <td>{{ data.address.town }}</td>
                   <td>{{ data.address.district }}</td>
-                  <td>{{ data.name }}</td>
+                  <td :class="[data.name === 'Belirtilmemis' ? 'italic font-bold' : '']">{{ data.name }}</td>
                   <td>
                       <nuxt-link :to="`/detail/${data._id}`" class="hover:underline">Detaylı Bilgi</nuxt-link>
                   </td>
