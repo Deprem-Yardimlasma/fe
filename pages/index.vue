@@ -10,7 +10,12 @@ const tableData = ref([])
 const cityData = ref([])
 const townData = ref([])
 const neighborhoodData = ref([])
-
+const userCoordinates = reactive({
+    hasLocation: false,
+    latitude: null,
+    longitude: null,
+    accuracy: null,
+});
 const showSuccessModal = ref(false)
 
 const filterTownData = ref([])
@@ -41,7 +46,23 @@ const onClickSave = async () => {
         }
     }
     if(inputData.phone) {
-        Object.assign('phone', inputData.phone)
+        Object.defineProperty(contract, 'phone', {
+            value: inputData.phone,
+            writable: true,
+            enumerable: true,
+            configurable: true
+        })
+    }
+    if(userCoordinates.hasLocation) {
+        Object.defineProperty(contract.address, 'geo', {
+            value: {
+                type: 'Point',
+                "coordinates": [userCoordinates.latitude, userCoordinates.longitude]
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+        })
     }
 
     await useFetch('/yardim',{
@@ -116,7 +137,6 @@ const onChangeFilterCity  = async () => {
         method: 'GET',
         baseURL: config.public.apiBase,
     })
-    console.log('x', data)
 
     filterTownData.value = data.value.data;
 }
@@ -142,6 +162,24 @@ const onClickClearFilter = () => {
     tableData.value = yardimResponse.data.value.data;
 }
 
+const setPosition = (position) => {
+    const coords = position.coords;
+    const {latitude, longitude, accuracy} = coords;
+
+    userCoordinates.latitude = latitude;
+    userCoordinates.longitude = longitude;
+    userCoordinates.accuracy = accuracy;
+    userCoordinates.hasLocation = true;
+}
+const getLocation = () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(setPosition);
+    }
+}
+
+if(process.client) {
+    getLocation();
+}
 </script>
 <template>
   <div class="flex flex-col gap-4">
