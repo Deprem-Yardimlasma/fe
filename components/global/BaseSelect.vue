@@ -12,11 +12,16 @@ const props = defineProps({
         type: String,
         default: ''
     },
+    disabled: {
+        type: Boolean,
+        default: false
+    }
 })
+
 const emit = defineEmits()
 
 const onInput = (val) => {
-    emit('update:modelValue', val.target.value)
+    emit('update:modelValue', props.options.find(option => option.value === val.target.value))
 }
 </script>
 <template>
@@ -24,7 +29,7 @@ const onInput = (val) => {
         <label v-if="props.label" class="label">
             <span class="label-text">{{ props.label }}</span>
         </label>
-        <select class="select select-bordered" @input="onInput">
+        <select class="select select-bordered" :disabled="props.disabled" @input="onInput">
             <option disabled selected>Seçiniz</option>
             <option v-for="option in props.options" :value="option.value">
                 {{ option.text }}
