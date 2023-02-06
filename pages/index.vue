@@ -1,6 +1,7 @@
 <script setup>
 import BaseInput from "~/components/global/BaseInput.vue";
 import HelpTable from "~/pages/components/HelpTable.vue";
+import BaseModal from "~/components/global/BaseModal.vue";
 // import BaseMap from "~/components/global/BaseMap.vue";
 
 const config = useRuntimeConfig();
@@ -9,6 +10,8 @@ const tableData = ref([])
 const cityData = ref([])
 const townData = ref([])
 const districtData = ref([])
+
+const showSuccessModal = ref(false)
 
 const filterTownData = ref([])
 
@@ -26,10 +29,6 @@ const filterData = reactive({
     town: ''
 })
 
-const iller = [{
-    text: 'Gaziantep',
-    value: 'Gaziantep'
-}]
 
 const onClickSave = async () => {
     const contract = {
@@ -50,6 +49,7 @@ const onClickSave = async () => {
         baseURL: config.public.apiBase,
         body: contract
     })
+    showSuccessModal.value = true;
 }
 
 
@@ -165,9 +165,15 @@ const onClickClearFilter = () => {
     <div class="flex flex-col md:flex-row items-center gap-4">
         <BaseSelect v-model="filterData.city" label="İl" :options="getCityValues" @change="onChangeFilterCity" />
         <BaseSelect v-model="filterData.town" label="İlçe" :options="getFilterTownValues" :disabled="!filterData.city" />
-        <button class="btn btn-primary md:mt-9 w-72" @click="onClickFilter">Filtrele</button>
-        <button class="btn md:mt-9 w-72" @click="onClickClearFilter">Temizle</button>
+        <button class="btn btn-outline md:mt-9 md:w-72 w-full" @click="onClickClearFilter">Temizle</button>
+        <button class="btn md:mt-9 md:w-72 w-full" @click="onClickFilter">Filtrele</button>
     </div>
+    <BaseModal v-model="showSuccessModal">
+        <template #header>
+            İşlem Başarılı
+        </template>
+        Yardım talebiniz alınmıştır.
+    </BaseModal>
     <HelpTable :data="tableData" />
     <!-- <ClientOnly>
         <BaseMap />
