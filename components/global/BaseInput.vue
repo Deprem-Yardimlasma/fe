@@ -12,6 +12,10 @@ const props = defineProps({
             type: String,
             default: ''
         },
+        required: {
+            type: Boolean,
+            default: false
+        },
         type: {
             type: String,
             default: 'text'
@@ -29,6 +33,7 @@ const onInput = (val) => {
     <div class="form-control w-full">
         <label v-if="props.label" class="label">
             <span class="label-text">{{props.label}}</span>
+            <span class="text-red-500" v-if="props.required"> * </span>
         </label>
         <input
             class="input input-bordered w-full"
@@ -36,6 +41,7 @@ const onInput = (val) => {
            :type="props.type"
            :value="modelValue"
            @input="onInput"
+           :required="props.required"
         />
     </div>
 </template>

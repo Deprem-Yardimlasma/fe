@@ -17,6 +17,7 @@ const userCoordinates = reactive({
     accuracy: null,
 });
 const showSuccessModal = ref(false)
+const showFailureModal = ref(false)
 
 const filterTownData = ref([])
 
@@ -26,7 +27,9 @@ const inputData = reactive({
     city: '',
     town: '',
     neighborhood: '',
-    apartment: ''
+    apartment: '',
+    source: '',
+    description: '',
 })
 
 const filterData = reactive({
@@ -34,15 +37,31 @@ const filterData = reactive({
     town: ''
 })
 
+const validateValues = () => {
+    if (!inputData.city || !inputData.town || !inputData.neighborhood || !inputData.source) {
+        showFailureModal.value = true;
+        return false
+    }
+
+    return true
+}
+
 
 const onClickSave = async () => {
+    if (!validateValues()) {
+        showFailureModal.value = true
+        return
+    }
+
     const contract = {
         name: inputData.name,
         address: {
             city: inputData.city?.text,
             town: inputData.town?.text,
             neighborhood: inputData.neighborhood?.text,
-            apartment: inputData.apartment
+            apartment: inputData.apartment,
+            source: inputData.source,
+            description: inputData.description,
         }
     }
     if(inputData.phone) {
@@ -187,14 +206,18 @@ if(process.client) {
         <h1>Yardım Adres Bildirimi</h1>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
-        <BaseSelect v-model="inputData.city" label="İl" :options="getCityValues" @change="onChangeCity" />
-        <BaseSelect v-model="inputData.town" label="İlçe" :options="getTownValues" :disabled="!inputData.city" @change="onChangeTown" />
-        <BaseSelect v-model="inputData.neighborhood" label="Mahalle" :disabled="!inputData.town" :options="getNeighborhoodValues" />
+        <BaseSelect v-model="inputData.city" label="İl" :options="getCityValues" @change="onChangeCity" :required="true" />
+        <BaseSelect v-model="inputData.town" label="İlçe" :options="getTownValues" :disabled="!inputData.city" @change="onChangeTown" :required="true"/>
+        <BaseSelect v-model="inputData.neighborhood" label="Mahalle" :disabled="!inputData.town" :options="getNeighborhoodValues" :required="true"/>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
         <BaseInput v-model="inputData.apartment" label="Apartman adı" />
         <BaseInput v-model="inputData.phone" label="Telefon Numarası" />
         <BaseInput v-model="inputData.name" label="İsim Soyisim" />
+    </div>
+    <div class="flex flex-col md:flex-row gap-4">
+        <BaseInput v-model="inputData.source" label="Kaynak" :required="true" />
+        <BaseInput v-model="inputData.description" label="Yardımcı Bilgiler" />
     </div>
     <button class="btn btn-primary btn-block" @click="onClickSave">Kaydet</button>
     <div class="prose flex justify-center w-full max-w-full mt-8">
@@ -211,6 +234,12 @@ if(process.client) {
             İşlem Başarılı
         </template>
         Yardım talebiniz alınmıştır.
+    </BaseModal>
+    <BaseModal v-model="showFailureModal">
+        <template #header>
+            İşlem Başarısız
+        </template>
+        Lütfen zorunlu alanları doldurunuz.
     </BaseModal>
     <HelpTable :data="tableData" />
     <!-- <ClientOnly>
