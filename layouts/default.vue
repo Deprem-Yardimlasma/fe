@@ -1,7 +1,7 @@
 <template>
   <div>
       <PageHeader />
-      <div class="p-4">
+      <div class="container p-4 mx-auto">
           <slot />
       </div>
   </div>
