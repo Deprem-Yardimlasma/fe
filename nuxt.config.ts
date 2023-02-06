@@ -11,5 +11,5 @@ export default defineNuxtConfig({
         public: {
             apiBase: 'http://api.toplumsalyardimlasma.com'
         }
-    }
+    },
 })

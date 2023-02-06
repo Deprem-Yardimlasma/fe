@@ -9,7 +9,7 @@ const config = useRuntimeConfig();
 const tableData = ref([])
 const cityData = ref([])
 const townData = ref([])
-const districtData = ref([])
+const neighborhoodData = ref([])
 
 const showSuccessModal = ref(false)
 
@@ -20,7 +20,7 @@ const inputData = reactive({
     phone: '',
     city: '',
     town: '',
-    district: '',
+    neighborhood: '',
     apartment: ''
 })
 
@@ -36,7 +36,7 @@ const onClickSave = async () => {
         address: {
             city: inputData.city?.text,
             town: inputData.town?.text,
-            district: inputData.district?.text,
+            neighborhood: inputData.neighborhood?.text,
             apartment: inputData.apartment
         }
     }
@@ -78,8 +78,8 @@ const getTownValues = computed(() => {
   }))
 })
 
-const getDistrictValues = computed(() => {
-  return districtData.value.map(distinct => ({
+const getNeighborhoodValues = computed(() => {
+  return neighborhoodData.value.map(distinct => ({
       value: distinct._id,
       text: distinct.name
   }))
@@ -108,7 +108,7 @@ const onChangeTown  = async () => {
         baseURL: config.public.apiBase,
     })
 
-    districtData.value = data.value.data;
+    neighborhoodData.value = data.value.data;
 }
 const onChangeFilterCity  = async () => {
     filterData.town = '';
@@ -151,7 +151,7 @@ const onClickClearFilter = () => {
     <div class="flex flex-col md:flex-row gap-4">
         <BaseSelect v-model="inputData.city" label="İl" :options="getCityValues" @change="onChangeCity" />
         <BaseSelect v-model="inputData.town" label="İlçe" :options="getTownValues" :disabled="!inputData.city" @change="onChangeTown" />
-        <BaseSelect v-model="inputData.district" label="Mahalle" :disabled="!inputData.town" :options="getDistrictValues" />
+        <BaseSelect v-model="inputData.neighborhood" label="Mahalle" :disabled="!inputData.town" :options="getNeighborhoodValues" />
     </div>
     <div class="flex flex-col md:flex-row gap-4">
         <BaseInput v-model="inputData.apartment" label="Apartman adı" />
