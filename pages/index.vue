@@ -45,6 +45,7 @@ const inputData = reactive({
 const filterData = reactive({
     city: '',
     town: '',
+    type: { value: 'seeker', text: 'Yardıma ihtiyacım var'},
     page: { value: '0', text: '0' },
     size: { value: '20', text: '20' },
 })
@@ -246,6 +247,7 @@ const onClickFilter = async () => {
     const contract = {
         'address.city': filterData.city?.text,
         'address.town': filterData.town?.text,
+        'type': filterData.type?.value,
     }
 
     const params = {
@@ -266,6 +268,7 @@ const onClickFilter = async () => {
 const onClickClearFilter = () => {
     filterData.city = '';
     filterData.town = '';
+    filterData.type = { value: 'seeker', text: 'Yardıma ihtiyacım var'};
     tableData.value = yardimResponse.data.value.data;
 }
 
@@ -349,6 +352,7 @@ if(process.client) {
         <BaseSelect v-model="filterData.size" label="Sayfa Başı Gösterilen Talep Sayısı" :options="getSizeValues" />
     </div>
     <div class="flex flex-col md:flex-row items-center gap-4">
+        <BaseSelect v-model="filterData.type" label="Yardım Tipi" :options="getTypeValues" />
         <button class="btn btn-outline md:mt-9 md:w-72 w-full" @click="onClickClearFilter">Temizle</button>
         <button class="btn md:mt-9 md:w-72 w-full" @click="onClickFilter">Filtrele</button>
     </div>
