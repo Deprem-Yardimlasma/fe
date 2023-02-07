@@ -44,7 +44,9 @@ const inputData = reactive({
 
 const filterData = reactive({
     city: '',
-    town: ''
+    town: '',
+    page: { value: '0', text: '0' },
+    size: { value: '20', text: '20' },
 })
 
 const validateValues = () => {
@@ -104,12 +106,31 @@ const onClickSave = async () => {
     showSuccessModal.value = true;
 }
 
+const initialParams = {
+        page: 0,
+        size: 20
+}
 
-const yardimResponse = await useFetch('/yardim',{
+const yardimResponse = await useFetch(`/yardim?page=${initialParams.page}&size=${initialParams.size}`,{
     method: 'GET',
     baseURL: config.public.apiBase,
 })
+
+const createProperModel = (number) => {
+    const arr = []
+    for(let i = 1; i <= number; i++) {
+        arr.push({
+            value: `${i}`,
+            text: `${i}`,
+        })
+    }
+    return arr
+}
+
 tableData.value = yardimResponse.data.value.data;
+
+const getPageValues = createProperModel(yardimResponse.data.value.totalPages)
+
 const cityResponse = await useFetch('/cities',{
     method: 'GET',
     baseURL: config.public.apiBase,
@@ -128,6 +149,13 @@ const getTypeValues =[
     { value: 'provider', text: 'Yardım edebilirim' }
   ]
 
+  const getSizeValues = [
+    { value: '10', text: '10' },
+    { value: '20', text: '20' },
+    { value: '50', text: '50' },
+    { value: '100', text: '100' },
+  ]
+
 const getNeedTypeValues = [
     'Erzak' ,
     'Kıyafet' ,
@@ -136,6 +164,7 @@ const getNeedTypeValues = [
    'Enkaz Kurtarma' ,
    'Diğer' 
   ]
+  
 
 const getTownValues = computed(() => {
   return townData.value.map(town => ({
@@ -219,7 +248,12 @@ const onClickFilter = async () => {
         'address.town': filterData.town?.text,
     }
 
-    const { data } = await useFetch('/filter',{
+    const params = {
+        page: (filterData.page?.value * 1) || 0,
+        size: (filterData.size?.value * 1) || 20
+    }
+
+    const { data } = await useFetch(`/filter?page=${params.page}&size=${params.size}`,{
         method: 'POST',
         baseURL: config.public.apiBase,
         body: contract
@@ -309,6 +343,12 @@ if(process.client) {
     <div class="flex flex-col md:flex-row items-center gap-4">
         <BaseSelect v-model="filterData.city" label="İl" :options="getCityValues" @change="onChangeFilterCity" />
         <BaseSelect v-model="filterData.town" label="İlçe" :options="getFilterTownValues" :disabled="!filterData.city" />
+    </div>
+    <div class="flex flex-col md:flex-row items-center gap-4">
+        <BaseSelect v-model="filterData.page" label="Sayfa Numarası" :options="getPageValues" />
+        <BaseSelect v-model="filterData.size" label="Sayfa Başı Gösterilen Talep Sayısı" :options="getSizeValues" />
+    </div>
+    <div class="flex flex-col md:flex-row items-center gap-4">
         <button class="btn btn-outline md:mt-9 md:w-72 w-full" @click="onClickClearFilter">Temizle</button>
         <button class="btn md:mt-9 md:w-72 w-full" @click="onClickFilter">Filtrele</button>
     </div>
