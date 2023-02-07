@@ -23,7 +23,7 @@ const props = defineProps({
               <tr v-for="data in props.data" class="hover">
                   <td>{{ data.address.city }}</td>
                   <td>{{ data.address.town }}</td>
-                  <td>{{ data.address.district }}</td>
+                  <td>{{ data.address.neighborhood }}</td>
                   <td class="max-w-md text-ellipsis overflow-hidden" :class="[data.name === 'Belirtilmemis' ? 'italic font-bold' : '']">{{ data.name }}</td>
                   <td>
                       <nuxt-link :to="`/detail/${data._id}`" class="hover:underline">Detaylı Bilgi</nuxt-link>
