@@ -31,7 +31,7 @@ const onInput = (val) => {
 </script>
 <template>
     <div class="form-control w-full">
-        <label v-if="props.label" class="label">(
+        <label v-if="props.label" class="label">
             <span class="label-text">{{props.label}}<span class="font-bold" v-if="props.required"> (Zorunlu)</span></span>
         </label>
         <input
