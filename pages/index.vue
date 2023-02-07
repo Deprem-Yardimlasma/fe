@@ -25,15 +25,18 @@ const showFailureModal = ref(false)
 const filterTownData = ref([])
 
 const inputData = reactive({
-    name: '',
-    phone: '',
-    city: '',
-    town: '',
-    neighborhood: '',
-    apartment: '',
-    source: '',
-    description: '',
-})
+    data: {
+        name: '',
+        phone: '',
+        city: '',
+        town: '',
+        neighborhood: '',
+        apartment: '',
+        source: '',
+        description: '',
+        type: { value: 'seeker', text: 'Yardıma ihtiyacım var'}, // seeker, provider
+        need: [] // ['Erzak', 'Kıyafet', 'Eşya', 'Barınak', 'Enkaz Kurtarma', 'Diğer'] 
+}})
 
 const filterData = reactive({
     city: '',
@@ -41,7 +44,7 @@ const filterData = reactive({
 })
 
 const validateValues = () => {
-    if (!inputData.city || !inputData.town || !inputData.neighborhood || !inputData.source) {
+    if (!inputData.data.city || !inputData.data.town || !inputData.data.neighborhood || !inputData.data.source) {
         showFailureModal.value = true;
         return false
     }
@@ -57,19 +60,19 @@ const onClickSave = async () => {
     }
 
     const contract = {
-        name: inputData.name,
+        name: inputData.data.name,
         address: {
-            city: inputData.city?.text,
-            town: inputData.town?.text,
-            neighborhood: inputData.neighborhood?.text,
-            apartment: inputData.apartment,
-            source: inputData.source,
-            description: inputData.description,
+            city: inputData.data.city?.text,
+            town: inputData.data.town?.text,
+            neighborhood: inputData.data.neighborhood?.text,
+            apartment: inputData.data.apartment,
+            source: inputData.data.source,
+            description: inputData.data.description,
         }
     }
-    if(inputData.phone) {
+    if(inputData.data.phone) {
         Object.defineProperty(contract, 'phone', {
-            value: inputData.phone,
+            value: inputData.data.phone,
             writable: true,
             enumerable: true,
             configurable: true
@@ -114,6 +117,20 @@ const getCityValues = computed(() => {
   }))
 })
 
+const getTypeValues =[
+    { value: 'seeker', text: 'Yardıma ihtiyacım var' },
+    { value: 'provider', text: 'Yardım edebilirim' }
+  ]
+
+const getNeedTypeValues = [
+    { value: 'Erzak', text: 'Erzak' },
+    { value: 'Kıyafet', text: 'Kıyafet' },
+    { value: 'Eşya', text: 'Eşya' },
+    { value: 'Barınak', text: 'Barınak' },
+    { value: 'Enkaz Kurtarma', text: 'Enkaz Kurtarma' },
+    { value: 'Diğer', text: 'Diğer' }
+  ]
+
 const getTownValues = computed(() => {
   return townData.value.map(town => ({
       value: town._id,
@@ -137,8 +154,8 @@ const getFilterTownValues = computed(() => {
 
 const onChangeCity  = async () => {
     showLoading.value = true
-    inputData.town = '';
-    const { data } = await useFetch(`/cities/${inputData.city?.value}/towns`,{
+    inputData.data.town = '';
+    const { data } = await useFetch(`/cities/${inputData.data.city?.value}/towns`,{
         method: 'GET',
         baseURL: config.public.apiBase,
     })
@@ -148,8 +165,8 @@ const onChangeCity  = async () => {
 }
 const onChangeTown  = async () => {
     showLoading.value = true
-    inputData.distinct = '';
-    const { data } = await useFetch(`/towns/${inputData.town?.value}/districts`,{
+    inputData.data.distinct = '';
+    const { data } = await useFetch(`/towns/${inputData.data.town?.value}/districts`,{
         method: 'GET',
         baseURL: config.public.apiBase,
     })
@@ -226,18 +243,22 @@ if(process.client) {
         <h1>Yardım Adres Bildirimi</h1>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
-        <BaseSelect v-model="inputData.city" label="İl" :options="getCityValues" @change="onChangeCity" :required="true" />
-        <BaseSelect v-model="inputData.town" label="İlçe" :options="getTownValues" :disabled="!inputData.city" @change="onChangeTown" :required="true"/>
-        <BaseSelect v-model="inputData.neighborhood" label="Mahalle" :disabled="!inputData.town" :options="getNeighborhoodValues" :required="true"/>
+        <BaseSelect v-model="inputData.data.type" label="Yardım Tipi" :options="getTypeValues" :required="true" />
+        <BaseSelect v-if="inputData.data.type.value === 'provider'" v-model="inputData.data.type" label="Yardım Alanları" :options="getNeedTypeValues" :required="true" />
     </div>
     <div class="flex flex-col md:flex-row gap-4">
-        <BaseInput v-model="inputData.apartment" label="Apartman adı" />
-        <BaseInput v-model="inputData.phone" label="Telefon Numarası" />
-        <BaseInput v-model="inputData.name" label="İsim Soyisim" />
+        <BaseSelect v-model="inputData.data.city" label="İl" :options="getCityValues" @change="onChangeCity" :required="true" />
+        <BaseSelect v-model="inputData.data.town" label="İlçe" :options="getTownValues" :disabled="!inputData.data.city" @change="onChangeTown" :required="true"/>
+        <BaseSelect v-model="inputData.data.neighborhood" label="Mahalle" :disabled="!inputData.data.town" :options="getNeighborhoodValues" :required="true"/>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
-        <BaseInput v-model="inputData.source" label="Kaynak" :required="true" />
-        <BaseInput v-model="inputData.description" label="Yardımcı Bilgiler" />
+        <BaseInput v-model="inputData.data.apartment" label="Apartman adı" />
+        <BaseInput v-model="inputData.data.phone" label="Telefon Numarası" />
+        <BaseInput v-model="inputData.data.name" label="İsim Soyisim" />
+    </div>
+    <div class="flex flex-col md:flex-row gap-4">
+        <BaseInput v-model="inputData.data.source" label="Kaynak" :required="true" />
+        <BaseInput v-model="inputData.data.description" label="Yardımcı Bilgiler" />
     </div>
     <button class="btn btn-primary btn-block" @click="onClickSave">Kaydet</button>
     <div class="prose flex justify-center w-full max-w-full mt-8">

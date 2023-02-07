@@ -1,5 +1,9 @@
 <script setup>
 const props = defineProps({
+    modelValue: {
+            type: [String, Number],
+            default: ''
+    },
     options: {
         type: Array,
         default: () => []
@@ -34,8 +38,8 @@ const onInput = (val) => {
             <span class="label-text">{{ props.label }}<span class="font-bold" v-if="props.required"> (Zorunlu)</span></span>
         </label>
         <select class="select select-bordered" :disabled="props.disabled" @input="onInput" :required="props.required">
-            <option disabled selected>Seçiniz</option>
-            <option v-for="option in props.options" :value="option.value">
+            <option disabled :selected="!modelValue">Seçiniz</option>
+            <option v-for="option in props.options" :value="option.value" :key="option.value" :selected="modelValue.value === option.value">
                 {{ option.text }}
             </option>
         </select>
