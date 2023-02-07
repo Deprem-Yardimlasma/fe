@@ -7,6 +7,9 @@ export default defineNuxtConfig({
             extensions: ['.vue']
         }
     ],
+    css: [
+      '@vueform/multiselect/themes/default.css'
+    ],
     runtimeConfig: {
         public: {
             apiBase: 'http://api.toplumsalyardimlasma.com'

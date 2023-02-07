@@ -1,4 +1,5 @@
 <script setup>
+import Multiselect from "@vueform/multiselect/src/Multiselect";
 import BaseInput from "~/components/global/BaseInput.vue";
 import HelpTable from "~/pages/components/HelpTable.vue";
 import BaseModal from "~/components/global/BaseModal.vue";
@@ -34,8 +35,9 @@ const inputData = reactive({
         apartment: '',
         source: '',
         description: '',
+        // TODO: add these to creation process.
         type: { value: 'seeker', text: 'Yardıma ihtiyacım var'}, // seeker, provider
-        need: [] // ['Erzak', 'Kıyafet', 'Eşya', 'Barınak', 'Enkaz Kurtarma', 'Diğer'] 
+        need: [], // should be multiple // ['Erzak', 'Kıyafet', 'Eşya', 'Barınak', 'Enkaz Kurtarma', 'Diğer'] 
 }})
 
 const filterData = reactive({
@@ -52,8 +54,7 @@ const validateValues = () => {
     return true
 }
 
-
-const onClickSave = async () => {
+const onClickSave = async () => { 
     if (!validateValues()) {
         showFailureModal.value = true
         return
@@ -66,10 +67,13 @@ const onClickSave = async () => {
             town: inputData.data.town?.text,
             neighborhood: inputData.data.neighborhood?.text,
             apartment: inputData.data.apartment,
-            source: inputData.data.source,
             description: inputData.data.description,
-        }
+        },
+        source: inputData.data.source,
+        need: inputData.data.need,
+        type: inputData.data.type?.value
     }
+
     if(inputData.data.phone) {
         Object.defineProperty(contract, 'phone', {
             value: inputData.data.phone,
@@ -123,12 +127,12 @@ const getTypeValues =[
   ]
 
 const getNeedTypeValues = [
-    { value: 'Erzak', text: 'Erzak' },
-    { value: 'Kıyafet', text: 'Kıyafet' },
-    { value: 'Eşya', text: 'Eşya' },
-    { value: 'Barınak', text: 'Barınak' },
-    { value: 'Enkaz Kurtarma', text: 'Enkaz Kurtarma' },
-    { value: 'Diğer', text: 'Diğer' }
+    'Erzak' ,
+    'Kıyafet' ,
+   'Eşya' ,
+   'Barınak' ,
+   'Enkaz Kurtarma' ,
+   'Diğer' 
   ]
 
 const getTownValues = computed(() => {
@@ -240,11 +244,26 @@ if(process.client) {
 </div>
   <div v-else class="flex flex-col gap-4">
     <div class="prose flex justify-center w-full max-w-full">
-        <h1>Yardım Adres Bildirimi</h1>
+        <h1>Yardım Bildirimi</h1>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
         <BaseSelect v-model="inputData.data.type" label="Yardım Tipi" :options="getTypeValues" :required="true" />
-        <BaseSelect v-if="inputData.data.type.value === 'provider'" v-model="inputData.data.type" label="Yardım Alanları" :options="getNeedTypeValues" :required="true" />
+        <div class="form-control w-full">
+            <label class="label">
+                <span class="label-text">Yardım Alanları<span class="font-bold"> (Zorunlu)</span></span>
+            </label>
+            <Multiselect
+                    mode="multiple"
+                    v-model="inputData.data.need"
+                    :options="getNeedTypeValues"
+            >
+                <template v-slot:multiplelabel="{ values }">
+                    <div class="multiselect-multiple-label">
+                    {{ values.map(values => values.label).join(' ,') }}
+                    </div>
+                </template>
+            </Multiselect>
+        </div>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
         <BaseSelect v-model="inputData.data.city" label="İl" :options="getCityValues" @change="onChangeCity" :required="true" />
@@ -262,7 +281,7 @@ if(process.client) {
     </div>
     <button class="btn btn-primary btn-block" @click="onClickSave">Kaydet</button>
     <div class="prose flex justify-center w-full max-w-full mt-8">
-        <h1>Kayıtlı Yardım Talepleri</h1>
+        <h1>Kayıtlı Talepler</h1>
     </div>
     <div class="flex flex-col md:flex-row items-center gap-4">
         <BaseSelect v-model="filterData.city" label="İl" :options="getCityValues" @change="onChangeFilterCity" />
@@ -270,6 +289,7 @@ if(process.client) {
         <button class="btn btn-outline md:mt-9 md:w-72 w-full" @click="onClickClearFilter">Temizle</button>
         <button class="btn md:mt-9 md:w-72 w-full" @click="onClickFilter">Filtrele</button>
     </div>
+    <HelpTable :data="tableData" />
     <BaseModal v-model="showSuccessModal">
         <template #header>
             İşlem Başarılı
@@ -282,10 +302,17 @@ if(process.client) {
         </template>
         Lütfen zorunlu alanları doldurunuz.
     </BaseModal>
-    <HelpTable :data="tableData" />
     <!-- <ClientOnly>
         <BaseMap />
         <template #fallback> Loading map... </template>
     </ClientOnly> -->
   </div>
 </template>
+<style scoped>
+::v-deep .multiselect-wrapper {
+    background-color: #e9e7e7;
+    border-color: #bdbcbc;
+    border-style: solid;
+    border-width: 1px;
+}
+</style>
