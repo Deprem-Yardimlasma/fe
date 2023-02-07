@@ -13,6 +13,7 @@ let cityData = inject('cityData')
 const showLoading = ref(false)
 const tableData = ref([])
 const townData = ref([])
+const districtData = ref([])
 const neighborhoodData = ref([])
 const userCoordinates = reactive({
     hasLocation: false,
@@ -31,6 +32,7 @@ const inputData = reactive({
         phone: '',
         city: '',
         town: '',
+        district: '',
         neighborhood: '',
         apartment: '',
         source: '',
@@ -142,10 +144,17 @@ const getTownValues = computed(() => {
   }))
 })
 
+const getDistrictValues = computed(() => {
+    return districtData.value.map(district => ({
+        value: district._id,
+        text: district.name
+    }))
+})
+
 const getNeighborhoodValues = computed(() => {
-  return neighborhoodData.value.map(distinct => ({
-      value: distinct._id,
-      text: distinct.name
+  return neighborhoodData.value.map(n => ({
+      value: n._id,
+      text: n.name
   }))
 })
 
@@ -169,8 +178,20 @@ const onChangeCity  = async () => {
 }
 const onChangeTown  = async () => {
     showLoading.value = true
-    inputData.data.distinct = '';
+    inputData.data.district = '';
     const { data } = await useFetch(`/towns/${inputData.data.town?.value}/districts`,{
+        method: 'GET',
+        baseURL: config.public.apiBase,
+    })
+    
+    districtData.value = data.value.data;
+    showLoading.value = false
+}
+
+const onChangeDistrict  = async () => {
+    showLoading.value = true
+    inputData.data.distinct = '';
+    const { data } = await useFetch(`/districts/${inputData.data.district?.value}/neighborhoods`,{
         method: 'GET',
         baseURL: config.public.apiBase,
     })
@@ -178,6 +199,7 @@ const onChangeTown  = async () => {
     neighborhoodData.value = data.value.data;
     showLoading.value = false
 }
+
 const onChangeFilterCity  = async () => {
     showLoading.value = true
     filterData.town = '';
@@ -268,7 +290,8 @@ if(process.client) {
     <div class="flex flex-col md:flex-row gap-4">
         <BaseSelect v-model="inputData.data.city" label="İl" :options="getCityValues" @change="onChangeCity" :required="true" />
         <BaseSelect v-model="inputData.data.town" label="İlçe" :options="getTownValues" :disabled="!inputData.data.city" @change="onChangeTown" :required="true"/>
-        <BaseSelect v-model="inputData.data.neighborhood" label="Mahalle" :disabled="!inputData.data.town" :options="getNeighborhoodValues" :required="true"/>
+        <BaseSelect v-model="inputData.data.district" label="Semt" :options="getDistrictValues" :disabled="!inputData.data.town" @change="onChangeDistrict" :required="true"/>
+        <BaseSelect v-model="inputData.data.neighborhood" label="Mahalle" :disabled="!inputData.data.district" :options="getNeighborhoodValues" :required="true"/>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
         <BaseInput v-model="inputData.data.apartment" label="Apartman adı" />
