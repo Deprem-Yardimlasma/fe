@@ -39,7 +39,7 @@ const inputData = reactive({
         description: '',
         // TODO: add these to creation process.
         type: { value: 'seeker', text: 'Yardıma ihtiyacım var'}, // seeker, provider
-        need: [], // should be multiple // ['Erzak', 'Kıyafet', 'Eşya', 'Barınak', 'Enkaz Kurtarma', 'Diğer'] 
+        need: [],
 }})
 
 const filterData = reactive({
