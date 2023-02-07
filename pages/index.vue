@@ -259,7 +259,7 @@ if(process.client) {
             >
                 <template v-slot:multiplelabel="{ values }">
                     <div class="multiselect-multiple-label">
-                    {{ values.map(values => values.label).join(' ,') }}
+                    {{ values.map(values => values.label).join(', ') }}
                     </div>
                 </template>
             </Multiselect>
