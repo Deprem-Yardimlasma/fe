@@ -37,7 +37,7 @@ const inputData = reactive({
         description: '',
         // TODO: add these to creation process.
         type: { value: 'seeker', text: 'Yardıma ihtiyacım var'}, // seeker, provider
-        need: [], // should be multiple // ['Erzak', 'Kıyafet', 'Eşya', 'Barınak', 'Enkaz Kurtarma', 'Diğer'] 
+        need: [], // should be multiple // ['Erzak', 'Kıyafet', 'Eşya', 'Barınak', 'Enkaz Kurtarma', 'Diğer']
 }})
 
 const filterData = reactive({
@@ -46,15 +46,23 @@ const filterData = reactive({
 })
 
 const validateValues = () => {
-    if (!inputData.data.city || !inputData.data.town || !inputData.data.neighborhood || !inputData.data.source) {
-        showFailureModal.value = true;
-        return false
+    if(inputData.data.type.value === 'seeker') {
+        if (!inputData.data.city || !inputData.data.town || !inputData.data.neighborhood || !inputData.data.source) {
+            showFailureModal.value = true;
+            return false
+        }
+    }
+    else {
+        if (!inputData.data.city || !inputData.data.town || !inputData.data.neighborhood) {
+            showFailureModal.value = true;
+            return false
+        }
     }
 
     return true
 }
 
-const onClickSave = async () => { 
+const onClickSave = async () => {
     if (!validateValues()) {
         showFailureModal.value = true
         return
@@ -94,12 +102,15 @@ const onClickSave = async () => {
         })
     }
 
-    await useFetch('/yardim',{
+    const { error } = await useFetch('/yardim',{
         method: 'POST',
         baseURL: config.public.apiBase,
         body: contract
     })
-    showSuccessModal.value = true;
+
+    if(!error.value) {
+        showSuccessModal.value = true;
+    }
 }
 
 
@@ -132,7 +143,7 @@ const getNeedTypeValues = [
    'Eşya' ,
    'Barınak' ,
    'Enkaz Kurtarma' ,
-   'Diğer' 
+   'Diğer'
   ]
 
 const getTownValues = computed(() => {
@@ -271,12 +282,12 @@ if(process.client) {
         <BaseSelect v-model="inputData.data.neighborhood" label="Mahalle" :disabled="!inputData.data.town" :options="getNeighborhoodValues" :required="true"/>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
-        <BaseInput v-model="inputData.data.apartment" label="Apartman adı" />
+        <BaseInput v-if="inputData.data.type.value === 'seeker'" v-model="inputData.data.apartment" label="Apartman adı" />
         <BaseInput v-model="inputData.data.phone" label="Telefon Numarası" />
         <BaseInput v-model="inputData.data.name" label="İsim Soyisim" />
     </div>
-    <div class="flex flex-col md:flex-row gap-4">
-        <BaseInput v-model="inputData.data.source" label="Kaynak" :required="true" />
+    <div v-if="inputData.data.type.value === 'seeker'" class="flex flex-col md:flex-row gap-4">
+        <BaseInput v-model="inputData.data.source" label="Kaynak" tooltip="Örnek olarak bir tweet linki girebilirsiniz." :required="true" />
         <BaseInput v-model="inputData.data.description" label="Yardımcı Bilgiler" />
     </div>
     <button class="btn btn-primary btn-block" @click="onClickSave">Kaydet</button>
@@ -309,10 +320,17 @@ if(process.client) {
   </div>
 </template>
 <style scoped>
+.multiselect {
+    background-color: #e9e7e7;
+    border: none;
+}
 ::v-deep .multiselect-wrapper {
     background-color: #e9e7e7;
     border-color: #bdbcbc;
     border-style: solid;
     border-width: 1px;
+    border-radius: 10px;
+
+    height: 3rem;
 }
 </style>

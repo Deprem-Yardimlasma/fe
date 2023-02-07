@@ -19,6 +19,10 @@ const props = defineProps({
         type: {
             type: String,
             default: 'text'
+        },
+        tooltip: {
+            type: String,
+            default: ''
         }
     }
 )
@@ -33,6 +37,9 @@ const onInput = (val) => {
     <div class="form-control w-full">
         <label v-if="props.label" class="label">
             <span class="label-text">{{props.label}}<span class="font-bold" v-if="props.required"> (Zorunlu)</span></span>
+            <div v-if="props.tooltip" class="tooltip tooltip-left mb-3 p-0 h-2" :data-tip="props.tooltip">
+                <Icon name="eva:info-fill" size="1.25rem" />
+            </div>
         </label>
         <input
             class="input input-bordered w-full"
