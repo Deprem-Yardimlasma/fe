@@ -8,6 +8,7 @@ const config = useRuntimeConfig();
 
 let cityData = inject('cityData')
 
+// add this to buttons and inputs.
 const showLoading = ref(false)
 const tableData = ref([])
 const townData = ref([])

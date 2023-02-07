@@ -39,7 +39,11 @@ const markerGeos = [{
 }, {
     latitude: 37.243411,
     longitude: 35.513080
-}]
+}, {
+    latitude: 39.339547,
+    longitude: 34.51052
+    }
+]
 </script>
 <template>
     <ol-map :loadTilesWhileAnimating="true" :loadTilesWhileInteracting="true" style="height:400px">
