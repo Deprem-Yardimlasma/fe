@@ -1,6 +1,6 @@
 <template>
     <div class="navbar bg-base-100 justify-between">
-        <nuxt-link class="btn btn-ghost normal-case text-xl" to="/">toplumsalyardim.org</nuxt-link>
+        <nuxt-link class="btn btn-ghost normal-case text-xl" to="/">toplumsalyardimlasma.org</nuxt-link>
         <div>
             <ContentList v-slot="{ list }">
                 <div class="flex gap-4">
