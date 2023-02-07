@@ -7,8 +7,26 @@
   </div>
 </template>
 <script setup>
+const config = useRuntimeConfig();
 const cityData = ref([])
-provide(cityData, 'cityData')
+const cityResponse = await useFetch('/cities',{
+    method: 'GET',
+    baseURL: config.public.apiBase,
+})
+
+cityData.value = cityResponse.data.value.data;
+
+const getCityValues = computed(() => {
+    return cityData.value.map(city => ({
+        value: city._id,
+        text: city.name
+    }))
+})
+
+provide('mainContext',{
+    cityData,
+    getCityValues
+})
 
 useHead({
   titleTemplate: 'Toplumsal Yardımlaşma Platformu - %s',

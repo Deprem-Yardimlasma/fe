@@ -1,17 +1,15 @@
 <script setup>
 import Multiselect from "@vueform/multiselect/src/Multiselect";
 import BaseInput from "~/components/global/BaseInput.vue";
-import HelpTable from "~/pages/components/HelpTable.vue";
 import BaseModal from "~/components/global/BaseModal.vue";
 // import BaseMap from "~/components/global/BaseMap.vue";
 
 const config = useRuntimeConfig();
 
-let cityData = inject('cityData')
+const { getCityValues } = inject('mainContext')
 
 // add this to buttons and inputs.
 const showLoading = ref(false)
-const tableData = ref([])
 const townData = ref([])
 const districtData = ref([])
 const neighborhoodData = ref([])
@@ -23,8 +21,6 @@ const userCoordinates = reactive({
 });
 const showSuccessModal = ref(false)
 const showFailureModal = ref(false)
-
-const filterTownData = ref([])
 
 const inputData = reactive({
     data: {
@@ -40,14 +36,6 @@ const inputData = reactive({
         type: { value: 'seeker', text: 'Yardıma ihtiyacım var'}, // seeker, provider
         need: [],
 }})
-
-const filterData = reactive({
-    city: '',
-    town: '',
-    type: { value: 'seeker', text: 'Yardıma ihtiyacım var'},
-    page: { value: '0', text: '0' },
-    size: { value: '20', text: '20' },
-})
 
 const validateValues = () => {
     if(inputData.data.type.value === 'seeker') {
@@ -117,54 +105,9 @@ const onClickSave = async () => {
     }
 }
 
-const initialParams = {
-        page: 0,
-        size: 20
-}
-
-const yardimResponse = await useFetch(`/yardim?page=${initialParams.page}&size=${initialParams.size}`,{
-    method: 'GET',
-    baseURL: config.public.apiBase,
-})
-
-const createProperModel = (number) => {
-    const arr = []
-    for(let i = 1; i <= number; i++) {
-        arr.push({
-            value: `${i}`,
-            text: `${i}`,
-        })
-    }
-    return arr
-}
-
-tableData.value = yardimResponse.data.value.data;
-
-const getPageValues = createProperModel(yardimResponse.data.value.totalPages)
-
-const cityResponse = await useFetch('/cities',{
-    method: 'GET',
-    baseURL: config.public.apiBase,
-})
-cityData = cityResponse.data.value.data;
-
-const getCityValues = computed(() => {
-  return cityData.map(city => ({
-      value: city._id,
-      text: city.name
-  }))
-})
-
 const getTypeValues =[
     { value: 'seeker', text: 'Yardıma ihtiyacım var' },
     { value: 'provider', text: 'Yardım edebilirim' }
-  ]
-
-  const getSizeValues = [
-    { value: '10', text: '10' },
-    { value: '20', text: '20' },
-    { value: '50', text: '50' },
-    { value: '100', text: '100' },
   ]
 
 const getNeedTypeValues = [
@@ -195,13 +138,6 @@ const getNeighborhoodValues = computed(() => {
   return neighborhoodData.value.map(n => ({
       value: n._id,
       text: n.name
-  }))
-})
-
-const getFilterTownValues = computed(() => {
-  return filterTownData.value.map(town => ({
-      value: town._id,
-      text: town.name
   }))
 })
 
@@ -238,48 +174,6 @@ const onChangeDistrict  = async () => {
 
     neighborhoodData.value = data.value.data;
     showLoading.value = false
-}
-
-const onChangeFilterCity  = async () => {
-    showLoading.value = true
-    filterData.town = '';
-    const { data } = await useFetch(`/cities/${filterData.city?.value}/towns`,{
-        method: 'GET',
-        baseURL: config.public.apiBase,
-    })
-
-    filterTownData.value = data.value.data;
-    showLoading.value = false
-}
-
-const onClickFilter = async () => {
-    showLoading.value = true
-    const contract = {
-        'address.city': filterData.city?.text,
-        'address.town': filterData.town?.text,
-        'type': filterData.type?.value,
-    }
-
-    const params = {
-        page: (filterData.page?.value * 1) || 0,
-        size: (filterData.size?.value * 1) || 20
-    }
-
-    const { data } = await useFetch(`/filter?page=${params.page}&size=${params.size}`,{
-        method: 'POST',
-        baseURL: config.public.apiBase,
-        body: contract
-    })
-
-    tableData.value = data.value.data;
-    showLoading.value = false
-}
-
-const onClickClearFilter = () => {
-    filterData.city = '';
-    filterData.town = '';
-    filterData.type = { value: 'seeker', text: 'Yardıma ihtiyacım var'};
-    tableData.value = yardimResponse.data.value.data;
 }
 
 const setPosition = (position) => {
@@ -350,23 +244,6 @@ if(process.client) {
         <BaseInput v-model="inputData.data.description" label="Yardımcı Bilgiler" />
     </div>
     <button class="btn btn-primary btn-block" @click="onClickSave">Kaydet</button>
-    <div class="prose flex justify-center w-full max-w-full mt-8">
-        <h1>Kayıtlı Talepler</h1>
-    </div>
-    <div class="flex flex-col md:flex-row items-center gap-4">
-        <BaseSelect v-model="filterData.city" label="İl" :options="getCityValues" @change="onChangeFilterCity" />
-        <BaseSelect v-model="filterData.town" label="İlçe" :options="getFilterTownValues" :disabled="!filterData.city" />
-    </div>
-    <div class="flex flex-col md:flex-row items-center gap-4">
-        <BaseSelect v-model="filterData.page" label="Sayfa Numarası" :options="getPageValues" />
-        <BaseSelect v-model="filterData.size" label="Sayfa Başı Gösterilen Talep Sayısı" :options="getSizeValues" />
-    </div>
-    <div class="flex flex-col md:flex-row items-center gap-4">
-        <BaseSelect v-model="filterData.type" label="Yardım Tipi" :options="getTypeValues" />
-        <button class="btn btn-outline md:mt-9 md:w-72 w-full" @click="onClickClearFilter">Temizle</button>
-        <button class="btn md:mt-9 md:w-72 w-full" @click="onClickFilter">Filtrele</button>
-    </div>
-    <HelpTable :data="tableData" />
     <BaseModal v-model="showSuccessModal">
         <template #header>
             İşlem Başarılı
