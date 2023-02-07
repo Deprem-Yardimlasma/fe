@@ -12,7 +12,7 @@ export default defineNuxtConfig({
     ],
     runtimeConfig: {
         public: {
-            apiBase: 'http://api.toplumsalyardimlasma.com'
+            apiBase: 'https://api.toplumsalyardimlasma.com'
         }
     },
 })
