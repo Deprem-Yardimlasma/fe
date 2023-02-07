@@ -13,6 +13,7 @@ let cityData = inject('cityData')
 const showLoading = ref(false)
 const tableData = ref([])
 const townData = ref([])
+const districtData = ref([])
 const neighborhoodData = ref([])
 const userCoordinates = reactive({
     hasLocation: false,
@@ -31,18 +32,20 @@ const inputData = reactive({
         phone: '',
         city: '',
         town: '',
+        district: '',
         neighborhood: '',
         apartment: '',
         source: '',
         description: '',
-        // TODO: add these to creation process.
         type: { value: 'seeker', text: 'Yardıma ihtiyacım var'}, // seeker, provider
-        need: [], // should be multiple // ['Erzak', 'Kıyafet', 'Eşya', 'Barınak', 'Enkaz Kurtarma', 'Diğer']
+        need: [],
 }})
 
 const filterData = reactive({
     city: '',
-    town: ''
+    town: '',
+    page: { value: '0', text: '0' },
+    size: { value: '20', text: '20' },
 })
 
 const validateValues = () => {
@@ -113,12 +116,31 @@ const onClickSave = async () => {
     }
 }
 
+const initialParams = {
+        page: 0,
+        size: 20
+}
 
-const yardimResponse = await useFetch('/yardim',{
+const yardimResponse = await useFetch(`/yardim?page=${initialParams.page}&size=${initialParams.size}`,{
     method: 'GET',
     baseURL: config.public.apiBase,
 })
+
+const createProperModel = (number) => {
+    const arr = []
+    for(let i = 1; i <= number; i++) {
+        arr.push({
+            value: `${i}`,
+            text: `${i}`,
+        })
+    }
+    return arr
+}
+
 tableData.value = yardimResponse.data.value.data;
+
+const getPageValues = createProperModel(yardimResponse.data.value.totalPages)
+
 const cityResponse = await useFetch('/cities',{
     method: 'GET',
     baseURL: config.public.apiBase,
@@ -137,6 +159,13 @@ const getTypeValues =[
     { value: 'provider', text: 'Yardım edebilirim' }
   ]
 
+  const getSizeValues = [
+    { value: '10', text: '10' },
+    { value: '20', text: '20' },
+    { value: '50', text: '50' },
+    { value: '100', text: '100' },
+  ]
+
 const getNeedTypeValues = [
     'Erzak' ,
     'Kıyafet' ,
@@ -146,6 +175,7 @@ const getNeedTypeValues = [
    'Diğer'
   ]
 
+
 const getTownValues = computed(() => {
   return townData.value.map(town => ({
       value: town._id,
@@ -153,10 +183,17 @@ const getTownValues = computed(() => {
   }))
 })
 
+const getDistrictValues = computed(() => {
+    return districtData.value.map(district => ({
+        value: district._id,
+        text: district.name
+    }))
+})
+
 const getNeighborhoodValues = computed(() => {
-  return neighborhoodData.value.map(distinct => ({
-      value: distinct._id,
-      text: distinct.name
+  return neighborhoodData.value.map(n => ({
+      value: n._id,
+      text: n.name
   }))
 })
 
@@ -180,8 +217,20 @@ const onChangeCity  = async () => {
 }
 const onChangeTown  = async () => {
     showLoading.value = true
-    inputData.data.distinct = '';
+    inputData.data.district = '';
     const { data } = await useFetch(`/towns/${inputData.data.town?.value}/districts`,{
+        method: 'GET',
+        baseURL: config.public.apiBase,
+    })
+
+    districtData.value = data.value.data;
+    showLoading.value = false
+}
+
+const onChangeDistrict  = async () => {
+    showLoading.value = true
+    inputData.data.distinct = '';
+    const { data } = await useFetch(`/districts/${inputData.data.district?.value}/neighborhoods`,{
         method: 'GET',
         baseURL: config.public.apiBase,
     })
@@ -189,6 +238,7 @@ const onChangeTown  = async () => {
     neighborhoodData.value = data.value.data;
     showLoading.value = false
 }
+
 const onChangeFilterCity  = async () => {
     showLoading.value = true
     filterData.town = '';
@@ -208,7 +258,12 @@ const onClickFilter = async () => {
         'address.town': filterData.town?.text,
     }
 
-    const { data } = await useFetch('/filter',{
+    const params = {
+        page: (filterData.page?.value * 1) || 0,
+        size: (filterData.size?.value * 1) || 20
+    }
+
+    const { data } = await useFetch(`/filter?page=${params.page}&size=${params.size}`,{
         method: 'POST',
         baseURL: config.public.apiBase,
         body: contract
@@ -270,7 +325,7 @@ if(process.client) {
             >
                 <template v-slot:multiplelabel="{ values }">
                     <div class="multiselect-multiple-label">
-                    {{ values.map(values => values.label).join(' ,') }}
+                    {{ values.map(values => values.label).join(', ') }}
                     </div>
                 </template>
             </Multiselect>
@@ -279,7 +334,8 @@ if(process.client) {
     <div class="flex flex-col md:flex-row gap-4">
         <BaseSelect v-model="inputData.data.city" label="İl" :options="getCityValues" @change="onChangeCity" :required="true" />
         <BaseSelect v-model="inputData.data.town" label="İlçe" :options="getTownValues" :disabled="!inputData.data.city" @change="onChangeTown" :required="true"/>
-        <BaseSelect v-model="inputData.data.neighborhood" label="Mahalle" :disabled="!inputData.data.town" :options="getNeighborhoodValues" :required="true"/>
+        <BaseSelect v-model="inputData.data.district" label="Semt" :options="getDistrictValues" :disabled="!inputData.data.town" @change="onChangeDistrict" :required="true"/>
+        <BaseSelect v-model="inputData.data.neighborhood" label="Mahalle" :disabled="!inputData.data.district" :options="getNeighborhoodValues" :required="true"/>
     </div>
     <div class="flex flex-col md:flex-row gap-4">
         <BaseInput v-if="inputData.data.type.value === 'seeker'" v-model="inputData.data.apartment" label="Apartman adı" />
@@ -297,6 +353,12 @@ if(process.client) {
     <div class="flex flex-col md:flex-row items-center gap-4">
         <BaseSelect v-model="filterData.city" label="İl" :options="getCityValues" @change="onChangeFilterCity" />
         <BaseSelect v-model="filterData.town" label="İlçe" :options="getFilterTownValues" :disabled="!filterData.city" />
+    </div>
+    <div class="flex flex-col md:flex-row items-center gap-4">
+        <BaseSelect v-model="filterData.page" label="Sayfa Numarası" :options="getPageValues" />
+        <BaseSelect v-model="filterData.size" label="Sayfa Başı Gösterilen Talep Sayısı" :options="getSizeValues" />
+    </div>
+    <div class="flex flex-col md:flex-row items-center gap-4">
         <button class="btn btn-outline md:mt-9 md:w-72 w-full" @click="onClickClearFilter">Temizle</button>
         <button class="btn md:mt-9 md:w-72 w-full" @click="onClickFilter">Filtrele</button>
     </div>
