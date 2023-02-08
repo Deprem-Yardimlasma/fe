@@ -3,6 +3,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "start": "node .output/server/index.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
@@ -19,5 +20,8 @@
     "daisyui": "^2.50.0",
     "ol": "^6.9.0",
     "vue3-openlayers": "^0.1.54"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
